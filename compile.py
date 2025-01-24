@@ -7,7 +7,6 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', required=True, help="Path to the directory containing folders with .exe files.")
     parser.add_argument('--exe_file_name', required=True, help="Name of the executable file to search for and execute.")
-    parser.add_argument('--debug_args', nargs='*', help="Optional arguments to pass to the executable file.")
     parser.add_argument('--gcc_flags', nargs='*', help="Additional flags to pass to the GCC compiler.")
     return parser.parse_args()
 
@@ -16,7 +15,6 @@ def main():
     args = parse_arguments()
     directory = args.directory
     exe_file_name = args.exe_file_name
-    debug_args = args.debug_args.split() if args.debug_args else []
     gcc_flags = args.gcc_flags if args.gcc_flags else []
 
     if os.path.isdir(directory):
