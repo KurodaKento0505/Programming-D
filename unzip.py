@@ -1,5 +1,22 @@
 import os
 import zipfile
+import argparse
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--directory', required=True, help="Path to the directory containing folders with .exe files.")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
+    directory = args.directory
+    if os.path.isdir(directory):
+        unzip_files_in_folders(directory)
+    else:
+        print("The provided path is not a valid directory.")
+
 
 def unzip_files_in_folders(directory):
     """
@@ -31,8 +48,4 @@ def unzip_files_in_folders(directory):
                         print(f"Error: {zip_path} is not a valid zip file.")
 
 if __name__ == "__main__":
-    target_directory = input("Enter the path to the directory: ").strip()
-    if os.path.isdir(target_directory):
-        unzip_files_in_folders(target_directory)
-    else:
-        print("The provided path is not a valid directory.")
+    main()

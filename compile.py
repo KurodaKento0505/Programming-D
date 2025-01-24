@@ -7,15 +7,20 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', required=True, help="Path to the directory containing folders with .exe files.")
     parser.add_argument('--exe_file_name', required=True, help="Name of the executable file to search for and execute.")
+    parser.add_argument('--debug_args', nargs='*', help="Optional arguments to pass to the executable file.")
+    parser.add_argument('--gcc_flags', nargs='*', help="Additional flags to pass to the GCC compiler.")
     return parser.parse_args()
 
 
 def main():
-    args = parse_arguments
+    args = parse_arguments()
     directory = args.directory
     exe_file_name = args.exe_file_name
+    debug_args = args.debug_args.split() if args.debug_args else []
+    gcc_flags = args.gcc_flags if args.gcc_flags else []
+
     if os.path.isdir(directory):
-        compile_c_files_in_folders(directory, exe_file_name)
+        compile_c_files_in_folders(directory, exe_file_name, gcc_flags)
     else:
         print("The provided path is not a valid directory.")
 
@@ -37,12 +42,13 @@ def find_c_files_recursive(directory):
                 c_files.append(os.path.join(root, file))
     return c_files
 
-def compile_c_files_in_folders(directory, exe_file_name):
+def compile_c_files_in_folders(directory, exe_file_name, gcc_flags):
     """
     Searches for C files in each folder and compiles them into executable files.
 
     Parameters:
         directory (str): The path to the directory containing folders with C files.
+        exe_file_name (str): The name of the executable file to be created.
     """
     for folder_name in os.listdir(directory):
         folder_path = os.path.join(directory, folder_name)
@@ -64,20 +70,19 @@ def compile_c_files_in_folders(directory, exe_file_name):
                 print(f"No C files found in {folder_name} or its subfolders.")
                 continue
 
-            # Compile the first C file found
-            for c_file_path in c_files:
-                try:
-                    print(f"Compiling {c_file_path} to {exe_file_path}...")
-                    result = subprocess.run(
-                        ["gcc", c_file_path, "-o", exe_file_path],
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    print(f"Compiled successfully: {exe_file_path}")
-                    break  # Compile only one .c file per folder
-                except subprocess.CalledProcessError as e:
-                    print(f"Error compiling {c_file_path}: {e.stderr}")
+            try:
+                # Compile all C files in the folder into a single executable
+                print(f"Compiling {len(c_files)} C file(s) to {exe_file_path}...")
+                result = subprocess.run(
+                    ["gcc", *c_files, "-o", exe_file_path, *gcc_flags],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"Compiled successfully: {exe_file_path}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error compiling files in {folder_name}: {e.stderr}")
+
 
 if __name__ == "__main__":
     main()
