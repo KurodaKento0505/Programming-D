@@ -23,10 +23,12 @@
 ```
 
 ## 前処理
-1. ```bash
+1. 
+```
 git clone https://github.com/KurodaKento0505/Programming-D.git
 ```
-1. ```bash
+1. 
+```
 cd Programming-D
 ```
 1. manabaから採点レポートと提出物をダウンロード
@@ -52,10 +54,10 @@ python debug.py --directory /Path/to/作業ディレクトリ/2-3-1 --exe_file_n
 * execution_results.csvが出力される．debug.pyを実行するごとに列が追加される．input.txtの中身を変えて，いくつかのパターンで評価可能．
 * --input_fileではtxtファイルで引数を与えられる．
   * input.txtの中身
-  　```txt
-    4
-    log
-    2
-    ```
+```
+4
+log
+2
+```
 * --debug_argsでも与えられるが，4-2-3では使えていない．
 * --input_fileと--debug_argsのどっちかは使えるともうので見極めてください．すみません．
