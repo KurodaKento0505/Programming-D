@@ -8,7 +8,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--directory', required=True, help="Path to the directory containing folders with .exe files.")
     parser.add_argument('--exe_file_name', required=True, help="Name of the executable file to search for and execute.")
-    parser.add_argument('--input_file', required=True, help="Name of the executable file to search for and execute.")
+    parser.add_argument('--input_file', required=False, help="Name of the input file to pass to the executable.")
     parser.add_argument('--debug_args', required=False, help="Optional arguments to pass to the executable file, separated by spaces.")
     return parser.parse_args()
 
@@ -31,11 +31,13 @@ def main():
 
 
 def execute_exe_files(directory, output_csv, exe_file_name, input_file, debug_args):
-    results = []
+    results = {}
 
     # Read input values from the input file
-    with open(input_file, 'r', encoding='utf-8') as file:
-        input_values = file.read()
+    input_values = ""
+    if input_file and os.path.exists(input_file):
+        with open(input_file, 'r', encoding='utf-8') as file:
+            input_values = file.read()
 
     for folder_name in os.listdir(directory):
         folder_path = os.path.join(directory, folder_name)
@@ -44,7 +46,6 @@ def execute_exe_files(directory, output_csv, exe_file_name, input_file, debug_ar
             exe_file_path = os.path.join(folder_path, exe_file_name)
             if os.path.exists(exe_file_path):
                 try:
-                    # Pass input_values as standard input to the executable
                     result = subprocess.run(
                         [exe_file_path, *debug_args],
                         text=True,
@@ -52,18 +53,41 @@ def execute_exe_files(directory, output_csv, exe_file_name, input_file, debug_ar
                         capture_output=True,
                         check=True
                     )
-                    results.append((folder_name, result.stdout.strip()))
+                    results[folder_name] = result.stdout.strip()
                 except subprocess.CalledProcessError as e:
-                    results.append((folder_name, f"Error during execution: {e.stderr.strip()}"))
+                    results[folder_name] = f"Error during execution: {e.stderr.strip()}"
             else:
-                results.append((folder_name, f"Error: {exe_file_name} not found"))
+                results[folder_name] = f"Error: {exe_file_name} not found"
 
-    # Write results to CSV
+    # Update or create CSV
+    update_or_create_csv(output_csv, results)
+
+
+def update_or_create_csv(output_csv, results):
+    # Load existing data if the CSV file exists
+    existing_data = {}
+    if os.path.exists(output_csv):
+        with open(output_csv, mode="r", encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(csv_file)
+            headers = next(csv_reader, [])
+            for row in csv_reader:
+                if len(row) > 1:
+                    existing_data[row[0]] = row[1:]
+
+    # Merge results into existing data
+    for folder, output in results.items():
+        if folder in existing_data:
+            existing_data[folder].append(output)
+        else:
+            existing_data[folder] = [output]
+
+    # Write back to the CSV
+    headers = ["Directory"] + [f"Run {i + 1}" for i in range(len(max(existing_data.values(), key=len, default=[])))]
     with open(output_csv, mode="w", newline="", encoding="utf-8") as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(["Directory", "Execution Output"])
-        csv_writer.writerows(results)
-
+        csv_writer.writerow(headers)
+        for folder, outputs in sorted(existing_data.items()):
+            csv_writer.writerow([folder] + outputs)
 
 
 if __name__ == "__main__":
