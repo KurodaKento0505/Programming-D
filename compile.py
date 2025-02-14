@@ -73,10 +73,13 @@ def compile_c_files_in_folders(directory, exe_file_name, gcc_flags):
                 print(f"Compiling {len(c_files)} C file(s) to {exe_file_path}...")
                 print(c_files)
                 result = subprocess.run(
-                    ["gcc", *c_files, "-o", exe_file_path, "-lm"],
+                    ["gcc", *c_files, "-o", exe_file_path, *gcc_flags],
                     check=True,
                     capture_output=True,
-                    text=True
+                    # text=True
+                    universal_newlines=True,
+                    encoding="utf-8",
+                    errors="ignore"
                 )
                 print(f"Compiled successfully: {exe_file_path}")
             except subprocess.CalledProcessError as e:

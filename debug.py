@@ -22,7 +22,7 @@ def main():
 
     # Set output file path to one level above the given directory
     parent_directory = os.path.dirname(os.path.abspath(directory))
-    output_csv = os.path.join(parent_directory, "execution_results.csv")
+    output_csv = os.path.join(parent_directory, f"execution_results_{os.path.split(directory)[1]}.csv")
 
     if os.path.isdir(directory):
         execute_exe_files(directory, output_csv, exe_file_name, input_file, debug_args)
@@ -48,10 +48,13 @@ def execute_exe_files(directory, output_csv, exe_file_name, input_file, debug_ar
                 try:
                     result = subprocess.run(
                         [exe_file_path, *debug_args],
-                        text=True,
+                        # text=True,
+                        universal_newlines=True,
                         input=input_values,
                         capture_output=True,
-                        check=True
+                        check=True,
+                        encoding="utf-8",
+                        errors="ignore"
                     )
                     results[folder_name] = result.stdout.strip()
                 except subprocess.CalledProcessError as e:
